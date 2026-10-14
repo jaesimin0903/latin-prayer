@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WYD 라틴어 미사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@1,400;1,500&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: one phone-width column (max 480px) with a bottom tab bar; "미사 중 모드" is a full-screen dark stage.
+   Palette: WYD Seoul 2027 brand colors (Youth Blue, Cross Red, Glorious Yellow, Dark Black) on blue-biased neutrals. */
+:root{
+  --bg:#F6F7FA; --surface:#FFFFFF; --ink:#151821; --muted:#585E70; --line:#E1E4EB; --chip:#EDF0F4;
+  --accent-fill:#0047BB; --accent-text:#0047BB; --blue-soft:#E7EEFA;
+  --dim:#878D9C; --dim-solo:#B3B8C3;
+  --red:#F32735; --yellow:#FBE126; --black:#000000;
+  --scrim:rgba(10,12,18,.42);
+  --f-ui:'Noto Sans KR', system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --f-latin:'EB Garamond', Georgia, 'Times New Roman', serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1017; --surface:#161A23; --ink:#ECEEF3; --muted:#A4AAB8; --line:#283040; --chip:#1F2430;
+    --accent-fill:#2F6BE0; --accent-text:#8FB1FF; --blue-soft:#172647;
+    --dim:#6E7587; --dim-solo:#474D5D; --scrim:rgba(0,0,0,.6); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1017; --surface:#161A23; --ink:#ECEEF3; --muted:#A4AAB8; --line:#283040; --chip:#1F2430;
+  --accent-fill:#2F6BE0; --accent-text:#8FB1FF; --blue-soft:#172647;
+  --dim:#6E7587; --dim-solo:#474D5D; --scrim:rgba(0,0,0,.6); color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:15px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent-fill);outline-offset:2px}
+.la{font-family:var(--f-latin);font-style:italic}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+svg{flex-shrink:0}
+
+.screen{max-width:480px;margin:0 auto;padding-inline:16px;padding-block:20px 112px;display:flex;flex-direction:column;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;color:var(--muted)}
+.stripe{display:flex;gap:3px}
+.stripe i{display:block;width:5px;height:16px;border-radius:2px}
+h1.big{font-size:28px;font-weight:900;letter-spacing:-0.02em;margin:0;line-height:1.2;text-wrap:balance}
+.lede{margin:0;color:var(--muted);font-size:14px}
+.notice{font-size:13px;color:var(--muted);background:var(--chip);border-radius:10px;padding:10px 12px}
+
+.search{display:flex;align-items:center;gap:10px;height:50px;padding-inline:14px;border-radius:12px;background:var(--chip);color:var(--muted)}
+.search:focus-within{box-shadow:0 0 0 2px var(--accent-fill)}
+.search input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);outline:none}
+.search input::placeholder{color:var(--muted)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{height:36px;padding-inline:14px;border-radius:18px;border:1.5px solid var(--line);background:var(--surface);font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
+
+.count{font-size:12px;color:var(--muted);padding-inline:2px}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:12px;width:100%;padding:14px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);text-align:left;cursor:pointer}
+.item:hover{border-color:var(--accent-fill)}
+.item .txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.item .top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.item .ko{font-size:16px;font-weight:700}
+.item .la{font-size:16px;color:var(--muted)}
+.item .pron{font-size:14px;color:var(--accent-text)}
+.item .where{font-size:12px;color:var(--muted)}
+.item[aria-disabled="true"]{cursor:default;opacity:.72}
+.item[aria-disabled="true"]:hover{border-color:var(--line)}
+.badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--chip);color:var(--muted);white-space:nowrap}
+.badge.ok{background:var(--blue-soft);color:var(--accent-text)}
+.vrow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted);padding:12px 2px 0;border-top:1px solid var(--line)}
+.vrow select{min-width:0;max-width:100%;height:40px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:13px;padding-inline:10px}
+.empty{text-align:center;padding:40px 12px;display:flex;flex-direction:column;gap:6px;align-items:center}
+.empty b{font-size:15px}
+.empty span{font-size:13px;color:var(--muted)}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs-in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.tab{height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:none;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer}
+.tab[aria-current="page"]{color:var(--accent-text);font-weight:700}
+
+.live-cta{display:flex;align-items:center;gap:14px;padding:16px;border-radius:16px;border:0;background:var(--ink);color:var(--bg);text-align:left;cursor:pointer;width:100%}
+.live-cta .t{flex:1;display:flex;flex-direction:column;gap:2px}
+.live-cta b{font-size:16px}
+.live-cta span{font-size:13px;opacity:.8}
+.legend{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--accent-text);display:inline-block}
+.sec{border:1.5px solid var(--line);border-radius:14px;background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.sec h2{margin:0;font-size:17px;display:flex;align-items:baseline;gap:8px}
+.sec h2 small{font-size:12px;font-weight:500;color:var(--muted)}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{border:0;font-size:13px;padding:7px 11px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;min-height:34px}
+.tag.say{background:var(--blue-soft);color:var(--accent-text);cursor:pointer;font-weight:500}
+.tag.say::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.tag.listen{background:var(--chip);color:var(--muted)}
+
+/* learn */
+.learn{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:6px;padding:12px 16px 4px}
+.topbar .t{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar h1{margin:0;font-size:18px;font-weight:700}
+.topbar .sub{font-size:13px;color:var(--muted)}
+.topbar .n{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;padding-right:4px}
+.iconbtn{width:44px;height:44px;border-radius:22px;border:0;background:transparent;display:grid;place-items:center;cursor:pointer}
+.iconbtn.fill{background:var(--chip)}
+.iconbtn:disabled,.btn:disabled{opacity:.38;cursor:default}
+.learn > .notice{margin:4px 16px 0}
+.stage{flex:1;display:flex;flex-direction:column;justify-content:center;gap:26px;padding:18px 22px}
+.ghost{color:var(--dim);display:flex;flex-direction:column;gap:2px}
+.ghost .gk{font-size:19px;font-weight:700}
+.ghost .gm{font-size:14px}
+.cur{display:flex;flex-direction:column;gap:10px}
+.cur .la{font-size:20px;color:var(--muted);line-height:1.35}
+.who{font-size:12px;font-weight:700;color:var(--accent-text);letter-spacing:.02em}
+.pron{display:flex;flex-wrap:wrap;gap:2px 2px;margin-left:-6px}
+.word{border:0;background:transparent;border-radius:8px;padding:2px 6px;font-size:32px;font-weight:700;line-height:1.42;color:var(--dim);cursor:pointer;text-decoration:underline dotted;text-decoration-color:var(--line);text-decoration-thickness:2px;text-underline-offset:10px}
+.word:hover{background:var(--chip)}
+.solo .word{color:var(--dim-solo)}
+.s.done{color:var(--accent-text)}
+.s.now{text-decoration:underline solid;text-decoration-color:var(--red);text-decoration-thickness:3px;text-underline-offset:6px}
+.cur .mean{font-size:16px}
+.hint{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.learn{padding-bottom:calc(190px + env(safe-area-inset-bottom,0px));box-sizing:border-box}
+.learn.short{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+.player{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding:12px max(16px, calc((100% - 448px) / 2)) calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.segs{display:flex;gap:4px}
+.segs i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.segs i.past{background:var(--accent-fill);opacity:.4}
+.segs i.on{background:var(--accent-fill)}
+.controls{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mid{display:flex;align-items:center;gap:16px}
+.play{width:64px;height:64px;border-radius:32px;border:0;background:var(--accent-fill);color:#FFFFFF;display:grid;place-items:center;cursor:pointer}
+.pill{height:40px;padding-inline:13px;border-radius:20px;border:1.5px solid var(--line);background:var(--surface);font-size:13px;cursor:pointer;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pill[aria-pressed="true"]{border-color:var(--accent-fill);background:var(--blue-soft);color:var(--accent-text);font-weight:700}
+.row2{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.linkbtn{border:0;background:none;color:var(--accent-text);font-size:14px;padding:8px 0;cursor:pointer}
+
+.scrim{position:fixed;inset:0;z-index:30;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:480px;background:var(--surface);border-radius:22px 22px 0 0;padding:10px 22px calc(26px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.grab{align-self:center;width:40px;height:4px;border-radius:2px;background:var(--line)}
+.sheet .head{display:flex;align-items:flex-start;gap:12px}
+.sheet .head .t{flex:1;display:flex;flex-direction:column;gap:2px}
+.sheet .wla{font-size:22px;color:var(--muted)}
+.sheet .wko{font-size:34px;font-weight:900;color:var(--accent-text);line-height:1.25}
+.sheet .wm{font-size:16px}
+.tip{padding:12px 14px;border-radius:12px;background:var(--chip);font-size:14px}
+.btns{display:flex;gap:10px}
+.btn{flex:1;height:52px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer}
+.btn.pri{border:0;background:var(--accent-fill);color:#FFFFFF}
+.btn.sec{border:1.5px solid var(--line);background:var(--surface);font-weight:500}
+
+/* prayer detail */
+.dlist{flex:1;display:flex;flex-direction:column;gap:6px;padding:12px 16px 20px}
+.dline{display:flex;flex-direction:column;gap:4px;width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid transparent;background:transparent;text-align:left;cursor:pointer}
+.dline:hover{background:var(--chip)}
+.dline .dk{font-size:18px;font-weight:700;line-height:1.45;white-space:pre-line}
+.cur .mean,.ghost .gm{white-space:pre-line}
+.dline .dpr{font-size:17px;font-weight:500;color:var(--accent-text);line-height:1.45}
+.dline.on{background:var(--blue-soft);border-color:var(--accent-fill)}
+.dline.on .dk{color:var(--accent-text)}
+.dwho{margin:0 16px;font-size:13px;font-weight:700;color:var(--accent-text)}
+.dnote{margin:4px 16px 0;font-size:12px;color:var(--muted)}
+
+/* practice */
+.ctx{font-size:13px;color:var(--muted)}
+.dots{display:flex;gap:4px;flex-wrap:wrap;max-width:140px;justify-content:flex-end}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--accent-fill)}
+.chat{display:flex;flex-direction:column;gap:16px;padding:16px 20px;flex:1;justify-content:center}
+.bub{display:flex;flex-direction:column;gap:6px;max-width:90%}
+.bub .lab{font-size:12px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px}
+.bub .box{background:var(--chip);border-radius:4px 16px 16px 16px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.bub .k{font-size:20px;font-weight:700;line-height:1.35}
+.bub .la{font-size:17px;color:var(--muted)}
+.bub .m{font-size:14px;color:var(--muted)}
+.bub.me{align-self:flex-end}
+.bub.me .lab{color:var(--accent-text);justify-content:flex-end}
+.bub.me .box{background:var(--blue-soft);border:2px solid var(--accent-fill);border-radius:16px 4px 16px 16px;min-height:96px}
+.bub.me .k{font-size:23px;color:var(--accent-text)}
+.bar{height:16px;border-radius:6px;background:var(--accent-fill);opacity:.18}
+.center{display:flex;justify-content:center}
+
+/* live: a deliberate single dark look for use inside the church */
+.live{position:fixed;inset:0;z-index:20;background:#0A0C11;color:#EEF0F4;overflow-y:auto;color-scheme:dark}
+.live-in{max-width:480px;margin:0 auto;min-height:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.live .bar1{display:flex;align-items:center;gap:6px}
+.live .bar1 .t{flex:1;min-width:0;display:flex;flex-direction:column}
+.live .eyebrow{font-size:12px;color:#A3A8B5}
+.live h1{margin:0;font-size:17px;font-weight:700}
+.live .iconbtn{color:#EEF0F4}
+.szs{display:flex;gap:4px}
+.szb{width:42px;height:42px;border-radius:10px;border:1.5px solid #3A404F;background:transparent;color:#EEF0F4;cursor:pointer;font-weight:700}
+.szb[aria-pressed="true"]{background:#EEF0F4;color:#0A0C11;border-color:#EEF0F4}
+.live .status{font-size:12px;color:#A3A8B5;display:flex;align-items:center;gap:6px}
+.lcard{background:#191D26;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.lcard .lab{font-size:12px;color:#A3A8B5}
+.lcard .k{font-size:18px;color:#DADDE5;font-weight:500}
+.lcard .la{font-size:16px;color:#A3A8B5}
+.resp{background:#00245F;border:2px solid #FBE126;border-radius:18px;padding:20px 18px;display:flex;flex-direction:column;gap:8px}
+.resp .lab{font-size:13px;font-weight:700;color:#FBE126;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.resp .k{font-weight:900;line-height:1.3;color:#FFFFFF}
+.resp .la{font-size:17px;color:#C9D6FF}
+.resp .m{font-size:15px;color:#E3E9FF}
+.sz0 .resp .k{font-size:26px} .sz1 .resp .k{font-size:32px} .sz2 .resp .k{font-size:40px}
+.plines{display:flex;flex-direction:column;gap:14px}
+.pl .k{font-weight:900;line-height:1.3;color:#FFFFFF}
+.sz0 .pl .k{font-size:21px} .sz1 .pl .k{font-size:25px} .sz2 .pl .k{font-size:31px}
+.pl .la{font-size:15px;color:#C9D6FF}
+.listen{border:1.5px solid #FBE126;background:transparent;color:#FBE126;border-radius:16px;height:32px;padding-inline:10px;font-size:12px;font-weight:700;cursor:pointer}
+.next{display:flex;flex-direction:column;gap:2px;padding-inline:4px;color:#A3A8B5}
+.next .k{font-size:15px}
+.lnav{display:flex;gap:10px;margin-top:auto}
+.lnav button{height:64px;border-radius:16px;font-size:17px;cursor:pointer}
+.lnav .prev{flex:1;border:1.5px solid #3A404F;background:#191D26;color:#EEF0F4;font-weight:500}
+.lnav .nx{flex:2;border:0;background:#EEF0F4;color:#0A0C11;font-weight:900}
+.lnav button:disabled{opacity:.4;cursor:default}
+.live .note{font-size:12px;color:#A3A8B5;text-align:center}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion: no-preference){
+  .scrim .sheet{animation:up .22s ease-out}
+  @keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}
+}
+</style>
+
+<div id="view"></div>
+<nav class="tabs" id="tabs" aria-label="주요 메뉴">
+  <div class="tabs-in">
+    <button class="tab" type="button" data-act="tab" data-to="home" id="tab-home">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h6z"/></svg>
+      <span>주요 기도문</span>
+    </button>
+    <button class="tab" type="button" data-act="tab" data-to="mass" id="tab-mass">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v20"/><path d="M6 8h12"/></svg>
+      <span>미사 모드</span>
+    </button>
+  </div>
+</nav>
+<div id="sheet"></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+/* ---------- data ---------- */
+/* 공식 한국어 기도문 자리.
+   주교회의 사용 승인을 받은 뒤, 기도문 id마다 한 줄씩 순서대로 넣으세요. 줄 수는 라틴어 줄 수와 같아야 해요.
+   예) pater: ['첫째 줄', '둘째 줄', ...]
+   비어 있으면 아래 PRAYERS의 '뜻 풀이' 문장이 대신 보여요. */
+const OFFICIAL = {
+  signum: [],
+  pater: [
+    '하늘에 계신 우리 아버지,',
+    '아버지의 이름이 거룩히 빛나시며',
+    '아버지의 나라가 오시며',
+    '아버지의 뜻이 하늘에서와 같이 땅에서도 이루어지소서!',
+    '오늘 저희에게 일용할 양식을 주시고',
+    '저희 죄를 용서하시고',
+    '저희에게 잘못한 이를 저희가 용서하오니',
+    '저희를 유혹에 빠지지 않게 하시고',
+    '악에서 구하소서. 아멘.'
+  ],
+  kyrie: [], sanctus: [], agnus: [],
+  ave: [
+    '은총이 가득하신 마리아님, 기뻐하소서!\n주님께서 함께 계시니',
+    '여인 중에 복되시며',
+    '태중의 아들 예수님 또한 복되시나이다.',
+    '천주의 성모 마리아님,',
+    '저희 죄인을 위하여 빌어주소서.',
+    '이제와 저희 죽을 때에\n아멘.'
+  ],
+  glpatri: [
+    '영광이 성부와 성자와 성령께',
+    '처음과 같이\n이제와 항상',
+    '영원히.\n아멘.'
+  ]
+};
+const koOf = (p, i) => (OFFICIAL[p.id] && OFFICIAL[p.id][i]) || p.lines[i][2];
+const isOfficial = p => !!(OFFICIAL[p.id] && OFFICIAL[p.id].length === (p.lines || []).length);
+const PRAYERS = [
+  {id:'signum', ko:'성호경', la:'Signum Crucis', where:'미사 시작과 끝 · 일상 기도', cat:'mass', lines:[
+    ['In nomine Patris, et Filii, et Spiritus Sancti.','인 노미네 파트리스, 엣 필리이, 엣 스피리투스 상크티.','성부와 성자와 성령의 이름으로.'],
+    ['Amen.','아멘.','아멘.']]},
+  {id:'pater', ko:'주님의 기도', la:'Pater Noster', where:'성찬 전례 · 일상 기도', cat:'mass', lines:[
+    ['Pater noster, qui es in caelis,','파테르 노스테르, 퀴 에스 인 첼리스,','하늘에 계신 우리 아버지,'],
+    ['sanctificetur nomen tuum.','상크티피체투르 노멘 투움.','아버지의 이름이 거룩히 여겨지게 하소서.'],
+    ['Adveniat regnum tuum.','아드베니아트 레뉴움 투움.','아버지의 나라가 오게 하소서.'],
+    ['Fiat voluntas tua, sicut in caelo et in terra.','피아트 볼룬타스 투아, 시쿠트 인 첼로 엣 인 테라.','아버지의 뜻이 하늘에서처럼 땅에서도 이루어지게 하소서.'],
+    ['Panem nostrum quotidianum da nobis hodie,','파넴 노스트룸 쿠오티디아눔 다 노비스 오디에,','오늘 저희에게 날마다 먹을 양식을 주시고,'],
+    ['et dimitte nobis debita nostra,','엣 디미테 노비스 데비타 노스트라,','저희 잘못을 용서해 주소서,'],
+    ['sicut et nos dimittimus debitoribus nostris.','시쿠트 엣 노스 디미티무스 데비토리부스 노스트리스.','저희에게 잘못한 이들을 저희가 용서하듯이.'],
+    ['Et ne nos inducas in tentationem,','엣 네 노스 인두카스 인 텐타치오넴,','저희가 유혹에 빠지지 않게 이끌어 주시고,'],
+    ['sed libera nos a malo. Amen.','세드 리베라 노스 아 말로. 아멘.','악에서 구해 주소서. 아멘.']]},
+  {id:'kyrie', ko:'자비송', la:'Kyrie', where:'시작 예식', cat:'mass', who:'사제가 먼저 부르면 모두 따라 불러요', lines:[
+    ['Kyrie, eleison.','키리에, 엘레이손.','주님, 자비를 베푸소서.'],
+    ['Christe, eleison.','크리스테, 엘레이손.','그리스도님, 자비를 베푸소서.'],
+    ['Kyrie, eleison.','키리에, 엘레이손.','주님, 자비를 베푸소서.']]},
+  {id:'gloria', ko:'대영광송', la:'Gloria', where:'시작 예식', cat:'mass', soon:true, pron:'글로리아 인 엑셸시스 데오…'},
+  {id:'credo', ko:'신경', la:'Credo', where:'말씀 전례', cat:'mass', soon:true, pron:'크레도 인 우눔 데움…'},
+  {id:'sanctus', ko:'거룩하시도다', la:'Sanctus', where:'성찬 전례', cat:'mass', lines:[
+    ['Sanctus, Sanctus, Sanctus Dominus Deus Sabaoth.','상크투스, 상크투스, 상크투스 도미누스 데우스 사바옷.','거룩하시다, 거룩하시다, 거룩하시다, 만군의 주 하느님.'],
+    ['Pleni sunt caeli et terra gloria tua.','플레니 순트 첼리 엣 테라 글로리아 투아.','하늘과 땅에 당신의 영광이 가득합니다.'],
+    ['Hosanna in excelsis.','오산나 인 엑셸시스.','높은 곳에서 호산나.'],
+    ['Benedictus qui venit in nomine Domini.','베네딕투스 퀴 베니트 인 노미네 도미니.','주님의 이름으로 오시는 분은 찬미받으소서.'],
+    ['Hosanna in excelsis.','오산나 인 엑셸시스.','높은 곳에서 호산나.']]},
+  {id:'agnus', ko:'하느님의 어린양', la:'Agnus Dei', where:'성찬 전례', cat:'mass', lines:[
+    ['Agnus Dei, qui tollis peccata mundi: miserere nobis.','아뉴스 데이, 퀴 톨리스 펙카타 문디: 미세레레 노비스.','세상의 죄를 없애시는 하느님의 어린양, 저희에게 자비를 베푸소서.'],
+    ['Agnus Dei, qui tollis peccata mundi: miserere nobis.','아뉴스 데이, 퀴 톨리스 펙카타 문디: 미세레레 노비스.','세상의 죄를 없애시는 하느님의 어린양, 저희에게 자비를 베푸소서.'],
+    ['Agnus Dei, qui tollis peccata mundi: dona nobis pacem.','아뉴스 데이, 퀴 톨리스 펙카타 문디: 도나 노비스 파쳄.','세상의 죄를 없애시는 하느님의 어린양, 저희에게 평화를 주소서.']]},
+  {id:'ave', ko:'성모송', la:'Ave Maria', where:'일상 기도', cat:'daily', lines:[
+    ['Ave Maria, gratia plena, Dominus tecum.','아베 마리아, 그라치아 플레나, 도미누스 테쿰.','기뻐하소서, 은총이 가득한 마리아님, 주님께서 함께 계십니다.'],
+    ['Benedicta tu in mulieribus,','베네딕타 투 인 물리에리부스,','여인들 가운데 복되신 분이시며,'],
+    ['et benedictus fructus ventris tui, Iesus.','엣 베네딕투스 프룩투스 벤트리스 투이, 예수스.','태중의 아드님 예수님 또한 복되십니다.'],
+    ['Sancta Maria, Mater Dei,','상크타 마리아, 마테르 데이,','거룩하신 마리아님, 하느님의 어머니,'],
+    ['ora pro nobis peccatoribus,','오라 프로 노비스 펙카토리부스,','죄 많은 저희를 위하여 빌어 주소서,'],
+    ['nunc et in hora mortis nostrae. Amen.','눙크 엣 인 오라 모르티스 노스트레. 아멘.','지금도, 저희가 죽음을 맞을 때에도. 아멘.']]},
+  {id:'glpatri', ko:'영광송', la:'Gloria Patri', where:'일상 기도', cat:'daily', who:'"영광이 성부와 성자와 성령께"에서 고개를 숙여요', lines:[
+    ['Gloria Patri, et Filio, et Spiritui Sancto.','글로리아 파트리, 엣 필리오, 엣 스피리투이 상크토.','성부와 성자와 성령께 영광을 드립니다,'],
+    ['Sicut erat in principio, et nunc, et semper,','시쿠트 에라트 인 프린치피오, 엣 눙크, 엣 셈페르,','처음에 그러하였듯이 지금도 언제나,'],
+    ['et in saecula saeculorum. Amen.','엣 인 세쿨라 세쿨로룸. 아멘.','영원무궁토록. 아멘.']]}
+];
+
+const R_ETCUM = ['Et cum spiritu tuo.','엣 쿰 스피리투 투오.','또한 사제의 영과 함께.'];
+const R_AMEN = ['Amen.','아멘.','그렇게 되소서.'];
+const R_DEOGR = ['Deo gratias.','데오 그라치아스.','하느님께 감사.'];
+const DIALOGS = [
+  {id:'d1', ctx:'미사 시작 · 성호경', pw:'사제', p:['In nomine Patris, et Filii, et Spiritus Sancti.','인 노미네 파트리스, 엣 필리이, 엣 스피리투스 상크티.','성부와 성자와 성령의 이름으로.'], r:R_AMEN},
+  {id:'d2', ctx:'인사', pw:'사제', p:['Dominus vobiscum.','도미누스 보비스쿰.','주님께서 여러분과 함께.'], r:R_ETCUM},
+  {id:'d3', ctx:'독서가 끝나면', pw:'독서자', p:['Verbum Domini.','베르붐 도미니.','주님의 말씀입니다.'], r:R_DEOGR},
+  {id:'d4', ctx:'복음 시작', pw:'사제', p:['Lectio sancti Evangelii secundum Ioannem.','렉치오 상크티 에반젤리이 세쿤둠 요안넴.','요한이 전한 거룩한 복음입니다. (복음서마다 이름이 바뀌어요)'], r:['Gloria tibi, Domine.','글로리아 티비, 도미네.','주님, 영광받으소서.']},
+  {id:'d5', ctx:'복음이 끝나면', pw:'사제', p:['Verbum Domini.','베르붐 도미니.','주님의 말씀입니다.'], r:['Laus tibi, Christe.','라우스 티비, 크리스테.','그리스도님, 찬미받으소서.']},
+  {id:'d6', ctx:'예물 준비 기도', pw:'사제', p:['Orate, fratres: ut meum ac vestrum sacrificium acceptabile fiat apud Deum Patrem omnipotentem.','오라테, 프라트레스: 우트 메움 악 베스트룸 사크리피치움 악쳅타빌레 피아트 아푸드 데움 파트렘 옴니포텐템.','형제 여러분, 우리가 함께 드리는 이 제사를 전능하신 하느님 아버지께서 받아 주시도록 기도합시다.'], r:['Suscipiat Dominus sacrificium de manibus tuis ad laudem et gloriam nominis sui, ad utilitatem quoque nostram totiusque Ecclesiae suae sanctae.','수쉬피아트 도미누스 사크리피치움 데 마니부스 투이스 아드 라우뎀 엣 글로리암 노미니스 수이, 아드 우틸리타템 쿠오퀘 노스트람 토치우스퀘 에클레시에 수에 상크테.','주님께서 사제의 손으로 이 제사를 받으시어, 당신 이름의 찬미와 영광이 되게 하시고 저희와 온 교회에 도움이 되게 하소서.']},
+  {id:'d7', ctx:'감사송 대화 ①', pw:'사제', p:['Sursum corda.','수르숨 코르다.','마음을 드높이.'], r:['Habemus ad Dominum.','아베무스 아드 도미눔.','주님께 올립니다.']},
+  {id:'d8', ctx:'감사송 대화 ②', pw:'사제', p:['Gratias agamus Domino Deo nostro.','그라치아스 아가무스 도미노 데오 노스트로.','우리 주 하느님께 감사합시다.'], r:['Dignum et iustum est.','디뉴움 엣 유스툼 에스트.','마땅하고 옳은 일입니다.']},
+  {id:'d9', ctx:'성체 축성 뒤', pw:'사제', p:['Mysterium fidei.','미스테리움 피데이.','신앙의 신비여.'], r:['Mortem tuam annuntiamus, Domine, et tuam resurrectionem confitemur, donec venias.','모르템 투암 안눈치아무스, 도미네, 엣 투암 레수렉치오넴 콘피테무르, 도넥 베니아스.','주님, 당신의 죽음을 전하며 부활을 고백합니다, 당신께서 오실 때까지.']},
+  {id:'d10', ctx:'마침 영광송', pw:'사제', p:['Per ipsum, et cum ipso, et in ipso…','페르 입숨, 엣 쿰 입소, 엣 인 입소…','그리스도를 통하여, 그리스도와 함께, 그리스도 안에서…'], r:['Amen.','아멘.','그렇게 되소서. (크게 노래해요)']},
+  {id:'d11', ctx:'평화 예식', pw:'사제', p:['Pax Domini sit semper vobiscum.','팍스 도미니 시트 셈페르 보비스쿰.','주님의 평화가 늘 여러분과 함께.'], r:R_ETCUM},
+  {id:'d12', ctx:'영성체 전', pw:'사제', p:['Ecce Agnus Dei, ecce qui tollit peccata mundi. Beati qui ad cenam Agni vocati sunt.','엣체 아뉴스 데이, 엣체 퀴 톨리트 펙카타 문디. 베아티 퀴 아드 체남 아니 보카티 순트.','보라, 하느님의 어린양, 세상의 죄를 없애시는 분. 어린양의 만찬에 초대받은 이는 복되도다.'], r:['Domine, non sum dignus, ut intres sub tectum meum, sed tantum dic verbo, et sanabitur anima mea.','도미네, 논 숨 디뉴스, 우트 인트레스 숩 텍툼 메움, 세드 탄툼 딕 베르보, 엣 사나비투르 아니마 메아.','주님, 저는 주님을 제 안에 모시기에 합당하지 않으나, 한 말씀만 하소서. 제 영혼이 나으리이다.']},
+  {id:'d13', ctx:'강복', pw:'사제', p:['Benedicat vos omnipotens Deus, Pater, et Filius, et Spiritus Sanctus.','베네디카트 보스 옴니포텐스 데우스, 파테르, 엣 필리우스, 엣 스피리투스 상크투스.','전능하신 하느님, 성부와 성자와 성령께서 여러분에게 강복하소서.'], r:R_AMEN},
+  {id:'d14', ctx:'파견', pw:'사제', p:['Ite, missa est.','이테, 미사 에스트.','가십시오, 미사가 끝났습니다.'], r:R_DEOGR}
+];
+
+const SECTIONS = [
+  {name:'시작 예식', items:[{t:'d',id:'d1'},{t:'d',id:'d2'},{t:'p',id:'kyrie'},{t:'i',title:'대영광송',text:'모두 함께 노래해요. 대영광송 발음은 준비 중이에요. 성가집을 따라가 주세요.'}]},
+  {name:'말씀 전례', items:[{t:'l',title:'독서 듣기'},{t:'d',id:'d3'},{t:'d',id:'d2',ctx:'복음 전 인사'},{t:'d',id:'d4'},{t:'d',id:'d5'},{t:'l',title:'강론 듣기'},{t:'i',title:'신경',text:'모두 함께 신앙을 고백해요. 신경 발음은 준비 중이에요. 성가집을 따라가 주세요.'}]},
+  {name:'성찬 전례', items:[{t:'d',id:'d6'},{t:'d',id:'d2',ctx:'감사송 시작'},{t:'d',id:'d7'},{t:'d',id:'d8'},{t:'p',id:'sanctus'},{t:'d',id:'d9'},{t:'d',id:'d10'},{t:'p',id:'pater'},{t:'d',id:'d11'},{t:'p',id:'agnus'},{t:'d',id:'d12'}]},
+  {name:'마침 예식', items:[{t:'d',id:'d2',ctx:'마침 인사'},{t:'d',id:'d13'},{t:'d',id:'d14'}]}
+];
+/* 홈 목록 순서: 기본 기도 4개를 먼저 */
+const ORDER = ['signum','pater','ave','glpatri','kyrie','gloria','credo','sanctus','agnus'];
+PRAYERS.sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
+const LIVE = [];
+SECTIONS.forEach(s => s.items.forEach(it => { if (it.t !== 'l') LIVE.push(Object.assign({sec:s.name}, it)); }));
+
+const GLOSS = {in:'~안에, ~으로',nomine:'이름으로',patris:'아버지의',et:'그리고',filii:'아들의',spiritus:'영, 성령',sancti:'거룩한',amen:'그렇게 되소서',pater:'아버지',noster:'우리의',qui:'~하시는 분',es:'계시다',caelis:'하늘',sanctificetur:'거룩히 드러나소서',nomen:'이름',tuum:'당신의',adveniat:'오소서',regnum:'나라',fiat:'이루어지소서',voluntas:'뜻',tua:'당신의',sicut:'~처럼',caelo:'하늘',terra:'땅',panem:'빵, 양식',nostrum:'우리의',quotidianum:'날마다의',da:'주소서',nobis:'우리에게',hodie:'오늘',dimitte:'용서하소서',debita:'빚, 잘못',nostra:'우리의',nos:'우리',dimittimus:'우리가 용서하다',debitoribus:'빚진 이들에게',nostris:'우리의',ne:'~하지 않게',inducas:'이끄소서',tentationem:'유혹',sed:'그러나',libera:'구하소서',a:'~에서',malo:'악',ave:'기뻐하소서',maria:'마리아',gratia:'은총',plena:'가득한',dominus:'주님',tecum:'당신과 함께',benedicta:'복되신',tu:'당신',mulieribus:'여인들',benedictus:'복되신',fructus:'열매',ventris:'태중의',tui:'당신의',iesus:'예수',sancta:'거룩한',mater:'어머니',dei:'하느님의',ora:'빌어 주소서',pro:'~을 위하여',peccatoribus:'죄인들',nunc:'지금',hora:'때',mortis:'죽음의',nostrae:'우리의',gloria:'영광',patri:'아버지께',filio:'아들께',spiritui:'성령께',sancto:'거룩한',erat:'~였다',principio:'처음',semper:'항상',saecula:'세대들',saeculorum:'세대들의',kyrie:'주님',eleison:'자비를 베푸소서',christe:'그리스도님',sanctus:'거룩하다',deus:'하느님',sabaoth:'만군의',pleni:'가득하다',sunt:'~이다',caeli:'하늘',hosanna:'호산나 (찬미의 외침)',excelsis:'높은 곳',venit:'오시다',domini:'주님의',agnus:'어린양',tollis:'없애시다',peccata:'죄들',mundi:'세상의',miserere:'자비를 베푸소서',dona:'주소서',pacem:'평화',vobiscum:'여러분과 함께',cum:'~와 함께',spiritu:'영',tuo:'당신의',verbum:'말씀',deo:'하느님께',gratias:'감사',lectio:'봉독',evangelii:'복음의',secundum:'~에 따른',ioannem:'요한 (예시)',tibi:'당신께',domine:'주님',laus:'찬미',orate:'기도하십시오',fratres:'형제들',ut:'~하도록',meum:'나의',ac:'그리고',vestrum:'여러분의',sacrificium:'제사',acceptabile:'받아들여질 만한',apud:'~ 곁에',deum:'하느님',patrem:'아버지',omnipotentem:'전능하신',suscipiat:'받아들이소서',de:'~로부터',manibus:'손',tuis:'당신의',ad:'~을 위하여, ~께',laudem:'찬미',gloriam:'영광',nominis:'이름의',sui:'자신의',utilitatem:'유익',quoque:'또한',nostram:'우리의',totiusque:'그리고 온',ecclesiae:'교회의',suae:'그의',sanctae:'거룩한',sursum:'위로',corda:'마음들',habemus:'우리가 두고 있다',dominum:'주님',agamus:'드립시다',domino:'주님께',nostro:'우리의',dignum:'마땅하다',iustum:'옳다',est:'~이다',mysterium:'신비',fidei:'신앙의',mortem:'죽음',tuam:'당신의',annuntiamus:'우리가 전합니다',resurrectionem:'부활',confitemur:'우리가 고백합니다',donec:'~할 때까지',venias:'당신이 오시다',per:'~를 통하여',ipsum:'그분',ipso:'그분',pax:'평화',sit:'있기를',ecce:'보라',tollit:'없애시다',beati:'복되다',cenam:'만찬',agni:'어린양의',vocati:'초대받은',non:'아니다',sum:'나는 ~이다',dignus:'합당한',intres:'들어오시다',sub:'~ 아래',tectum:'지붕',tantum:'다만',dic:'말씀하소서',verbo:'말씀으로',sanabitur:'나으리라',anima:'영혼',mea:'나의',benedicat:'강복하소서',vos:'여러분을',omnipotens:'전능하신',filius:'아들',ite:'가십시오',missa:'파견되었다'};
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const view = $('#view');
+const P = id => PRAYERS.find(p => p.id === id);
+const D = id => DIALOGS.find(d => d.id === id);
+const PUNCT = /[,.:;…!?()]/g;
+const clean = w => w.replace(PUNCT,'').toLowerCase();
+function wordsOf(la, ko){
+  const L = la.split(/\s+/), K = ko.split(/\s+/);
+  if (L.length !== K.length) return [{la, ko, mean:'', note:''}];
+  return L.map((w,i) => ({la:w, ko:K[i], mean:GLOSS[clean(w)]||'', note:tipFor(w)}));
+}
+function tipFor(w){
+  const s = clean(w);
+  const t = [];
+  if (/sc[eiy]/.test(s)) t.push('"sc"가 e·i 앞에 오면 "시" 소리예요.');
+  else if (/xc[ei]/.test(s)) t.push('"xc"가 e·i 앞에 오면 "크셰"처럼 이어 읽어요.');
+  else if (/c[eiy]|cae|coe/.test(s)) t.push('"c"가 e·i 앞에 오면 "ㅊ" 소리예요.');
+  if (/gn/.test(s)) t.push('"gn"은 "뉴"처럼 읽어요.');
+  if (/qu/.test(s)) t.push('"qu"는 "쿠"를 짧게, "크w" 소리예요.');
+  if (/ae|oe/.test(s)) t.push('"ae·oe"는 "에"로 읽어요.');
+  if (/[^stx]ti[aeiou]/.test(s)) t.push('"ti" 뒤에 모음이 오면 "치"로 읽어요.');
+  if (/g[ei]/.test(s) && !/gn/.test(s)) t.push('"g"가 e·i 앞에 오면 "ㅈ" 소리예요.');
+  if (/ch/.test(s)) t.push('"ch"는 "ㅋ" 소리예요.');
+  else if (/h/.test(s)) t.push('"h"는 소리 내지 않아요.');
+  if (/^i[aeou]/.test(s)) t.push('모음 앞 첫 "i"는 "이" 반모음이라 "예·유"처럼 붙여 읽어요.');
+  if (/cc[ao]/.test(s)) t.push('"cc"는 받침 "ㄱ"을 넣어 "ㄱㅋ"으로 읽어요.');
+  return t.length ? t.join(' ') : '쓰인 그대로 읽어요. 모음은 아·에·이·오·우로 또렷하게.';
+}
+const syls = ko => Array.from(ko.replace(PUNCT,''));
+function toTTS(s){
+  return s.replace(/ae/gi,'e').replace(/oe/gi,'e')
+    .replace(/([^stx\s])ti([aeiou])/gi,'$1zi$2')
+    .replace(/xc([ei])/gi,'csc$1')
+    .replace(/ph/gi,'f').replace(/th/gi,'t')
+    .replace(/j/gi,'i').replace(/y/gi,'i')
+    .replace(/(^|[^c])h/gi,'$1')
+    .replace(/…/g,'.').replace(/:/g,',');
+}
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toast.h); toast.h = setTimeout(() => { t.hidden = true; }, 2200);
+}
+
+const I = {
+  back:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>',
+  x:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg>',
+  play:'<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>',
+  pause:'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>',
+  prev:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 20L9 12l10-8v16z"/><path d="M5 19V5"/></svg>',
+  next:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4l10 8-10 8V4z"/><path d="M19 5v14"/></svg>',
+  search:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  chev:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--muted)"><path d="M9 6l6 6-6 6"/></svg>',
+  spk:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>',
+  tap:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V6a3 3 0 0 1 6 0v5"/><path d="M5 11h14v3a7 7 0 0 1-14 0z"/></svg>',
+  sun:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  stripe:'<span class="stripe" aria-hidden="true"><i style="background:var(--red)"></i><i style="background:#0047BB"></i><i style="background:var(--yellow)"></i><i style="background:var(--black);outline:1px solid var(--line)"></i></span>'
+};
+
+/* ---------- speech ---------- */
+/* Voice choice: Italian reads ecclesiastical Latin best; Spanish and Portuguese are fallbacks.
+   Never let the browser fall back to the device default (often Korean): always pass an explicit voice,
+   re-resolved from a fresh getVoices() list on every utterance. */
+const TTS = { ok: typeof window.speechSynthesis !== 'undefined' && typeof window.SpeechSynthesisUtterance !== 'undefined', checked:false, uri:null };
+try{ TTS.uri = localStorage.getItem('wyd-voice'); }catch(e){}
+const LANG_RANK = l => /^it/i.test(l) ? 0 : /^es/i.test(l) ? 1 : /^pt/i.test(l) ? 2 : 9;
+const LANG_NAME = l => /^it/i.test(l) ? '이탈리아어' : /^es/i.test(l) ? '스페인어' : /^pt/i.test(l) ? '포르투갈어' : l;
+function candidates(){
+  if (!TTS.ok) return [];
+  return speechSynthesis.getVoices()
+    .filter(v => LANG_RANK(v.lang) < 9)
+    .sort((a, b) => (LANG_RANK(a.lang)*2 + (a.localService?0:1)) - (LANG_RANK(b.lang)*2 + (b.localService?0:1)));
+}
+function currentVoice(){
+  const c = candidates();
+  if (!c.length) return null;
+  return c.find(v => v.voiceURI === TTS.uri) || c[0];
+}
+function onVoices(){
+  if (!TTS.ok) return;
+  if (speechSynthesis.getVoices().length) TTS.checked = true;
+  const n = $('#voice-note'); if (n) n.outerHTML = voiceNote();
+  const sel = $('#voice'); if (sel) sel.outerHTML = voiceSelect();
+}
+if (TTS.ok){ onVoices(); speechSynthesis.addEventListener('voiceschanged', onVoices); }
+function whenVoices(cb){
+  if (!TTS.ok || speechSynthesis.getVoices().length){ cb(); return; }
+  let done = false;
+  const go = () => { if (done) return; done = true; TTS.checked = true; cb(); };
+  speechSynthesis.addEventListener('voiceschanged', go, {once:true});
+  setTimeout(go, 1200);
+}
+const canSpeak = () => TTS.ok && !(TTS.checked && !currentVoice());
+function voiceNote(){
+  if (!TTS.ok) return '<div class="notice" id="voice-note">이 브라우저는 음성 재생을 지원하지 않아요. 글자가 칠해지는 속도에 맞춰 읽어 보세요.</div>';
+  if (!TTS.checked) return '<span id="voice-note" hidden></span>';
+  const v = currentVoice();
+  if (!v) return '<div class="notice" id="voice-note">이 기기에 이탈리아어·스페인어 음성이 없어 소리를 낼 수 없어요. 글자만 칠해져요. 기기 설정에서 이탈리아어 음성을 추가해 주세요.</div>';
+  if (!/^it/i.test(v.lang)) return `<div class="notice" id="voice-note">이탈리아어 음성이 없어 ${LANG_NAME(v.lang)} 음성으로 읽어요. 일부 발음이 다를 수 있어요.</div>`;
+  return '<span id="voice-note" hidden></span>';
+}
+function voiceSelect(){
+  const c = candidates(), cur = currentVoice();
+  if (!c.length) return '<span id="voice" hidden></span>';
+  return `<label class="vrow" id="voice"><span>읽어 줄 목소리</span>
+    <select id="voice-sel" aria-label="읽어 줄 목소리">${c.map(v => `<option value="${v.voiceURI.replace(/"/g,'&quot;')}"${cur && v.voiceURI===cur.voiceURI?' selected':''}>${LANG_NAME(v.lang)} · ${v.name.replace(/</g,'&lt;')}</option>`).join('')}</select></label>`;
+}
+function speak(text, rate, on){
+  on = on || {};
+  if (!TTS.ok){ on.end && on.end(); return; }
+  speechSynthesis.cancel();
+  whenVoices(() => {
+    const v = currentVoice();
+    if (!v){ on.end && on.end(); return; }
+    const tts = toTTS(text);
+    const u = new SpeechSynthesisUtterance(tts);
+    u.voice = v; u.lang = v.lang;
+    u.rate = rate || 0.85;
+    u.onboundary = e => { if (on.boundary && (!e.name || e.name === 'word')) on.boundary(e.charIndex, tts); };
+    u.onend = () => on.end && on.end();
+    u.onerror = () => on.end && on.end();
+    setTimeout(() => { try{ speechSynthesis.resume(); }catch(e){} speechSynthesis.speak(u); }, 40);
+  });
+}
+function stopSpeech(){ if (TTS.ok) speechSynthesis.cancel(); }
+
+/* ---------- state ---------- */
+const S = { route:'home', from:'home', q:'', cat:'all', pid:null, line:0, rate:0.85, solo:false, repeat:false,
+  dlg:0, cover:false, live:0, size:store.get('wyd-size',1), sel:-1 };
+let K = null; // karaoke engine state
+let PA = null; // whole-prayer playback state
+let wake = null;
+
+function go(route, opts){
+  stopAll();
+  Object.assign(S, opts || {}, {route});
+  render();
+  window.scrollTo(0,0);
+}
+function stopAll(){
+  if (K){ K.alive = false; clearInterval(K.timer); K = null; }
+  stopPA();
+  stopSpeech();
+  closeSheet();
+}
+
+/* ---------- whole-prayer playback ---------- */
+function stopPA(){
+  if (PA){ PA.alive = false; clearTimeout(PA.t); PA = null; }
+  markPA();
+}
+function markPA(){
+  document.querySelectorAll('#dlist .dline').forEach((b, i) => b.classList.toggle('on', !!PA && S.pline === i));
+  const b = $('#pabtn'); if (b) b.textContent = PA ? '일시정지' : '재생';
+}
+function playFrom(i){
+  stopPA(); stopSpeech();
+  const p = P(S.pid);
+  const a = PA = { alive:true, t:null };
+  const step = j => {
+    if (!a.alive) return;
+    if (j >= p.lines.length){ stopPA(); return; }
+    S.pline = j; markPA();
+    const el = document.querySelectorAll('#dlist .dline')[j];
+    if (el) el.scrollIntoView({ block:'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    const next = () => { if (a.alive) a.t = setTimeout(() => step(j + 1), 450); };
+    if (canSpeak()) speak(p.lines[j][0], S.rate, { end: next });
+    else a.t = setTimeout(next, syls(p.lines[j][1]).length * 380);
+  };
+  step(i);
+}
+function render(){
+  const tabbed = S.route === 'home' || S.route === 'mass';
+  $('#tabs').hidden = !tabbed;
+  $('#tab-home').toggleAttribute('aria-current', S.route === 'home'); if (S.route==='home') $('#tab-home').setAttribute('aria-current','page');
+  $('#tab-mass').toggleAttribute('aria-current', S.route === 'mass'); if (S.route==='mass') $('#tab-mass').setAttribute('aria-current','page');
+  view.innerHTML = VIEWS[S.route]();
+  if (S.route === 'home') renderList();
+  if (S.route === 'learn') paint();
+  if (S.route === 'live') wakeOn(); else wakeOff();
+  document.title = 'WYD 라틴어 미사';
+}
+
+/* ---------- views ---------- */
+const VIEWS = {
+  home(){
+    return `<div class="screen">
+      <div class="brand">${I.stripe}<span>WYD 라틴어 미사</span></div>
+      <h1 class="big">주요 기도문</h1>
+      ${voiceNote()}
+      <label class="search" for="q">${I.search}<span class="sr">기도문 검색</span>
+        <input id="q" type="search" autocomplete="off" placeholder="한글 이름, 라틴어, 발음으로 찾기" value="${S.q.replace(/"/g,'&quot;')}">
+      </label>
+      <div class="chips" role="group" aria-label="분류">
+        ${[['all','전체'],['mass','미사 중 기도'],['daily','일상 기도']].map(([id,l]) => `<button type="button" class="chip" data-act="cat" data-id="${id}" aria-pressed="${S.cat===id}">${l}</button>`).join('')}
+      </div>
+      <div class="count" id="count"></div>
+      <div class="list" id="plist"></div>
+      ${voiceSelect()}
+    </div>`;
+  },
+  mass(){
+    return `<div class="screen">
+      <div class="brand">${I.stripe}<span>WYD 라틴어 미사</span></div>
+      <h1 class="big">미사 모드</h1>
+      <button type="button" class="live-cta" data-act="live" data-i="0">
+        <span class="t"><b>지금 미사 중이에요</b><span>큰 글씨로 다음 응답만 따라가기</span></span>${I.chev.replace('var(--muted)','currentColor')}
+      </button>
+      <div class="legend"><span class="dot" aria-hidden="true"></span><span>파란 항목은 <b>내가 소리 내어 말하는 부분</b>이에요. 누르면 연습할 수 있어요.</span></div>
+      ${SECTIONS.map((s, si) => `<section class="sec" aria-labelledby="sec${si}">
+        <h2 id="sec${si}">${s.name}<small>${si+1} / ${SECTIONS.length}</small></h2>
+        <div class="tags">${s.items.map(it => tagHTML(it)).join('')}</div>
+      </section>`).join('')}
+    </div>`;
+  },
+  prayer(){
+    const p = P(S.pid);
+    const playing = !!(PA && PA.alive);
+    return `<div class="learn short">
+      <div class="topbar">
+        <button type="button" class="iconbtn" data-act="back" aria-label="뒤로">${I.back}</button>
+        <div class="t"><h1>${p.ko}</h1><span class="sub"><span class="la">${p.la}</span> · ${p.where}</span></div>
+      </div>
+      ${voiceNote()}
+      ${p.who ? `<p class="dwho">${p.who}</p>` : ''}
+      ${isOfficial(p) ? '' : '<p class="dnote">한국어 줄은 공식 기도문이 아니라 라틴어 뜻을 풀어 쓴 문장이에요.</p>'}
+      <div class="dlist" id="dlist">
+        ${p.lines.map((l, i) => `<button type="button" class="dline${playing && S.pline===i?' on':''}" data-act="playfrom" data-i="${i}" aria-label="${i+1}번째 줄부터 재생">
+          <span class="dk">${koOf(p, i)}</span><span class="dpr">${l[1]}</span></button>`).join('')}
+      </div>
+      <div class="player">
+        <div class="btns">
+          <button type="button" class="btn pri" id="pabtn" data-act="playall">${playing ? '일시정지' : '재생'}</button>
+          <button type="button" class="btn sec" data-act="learnit">배우기</button>
+        </div>
+      </div>
+    </div>`;
+  },
+  learn(){
+    const p = P(S.pid), n = p.lines.length, L = p.lines[S.line];
+    const prev = p.lines[S.line-1], next = p.lines[S.line+1];
+    const ws = wordsOf(L[0], L[1]);
+    let k = 0;
+    const pron = ws.map((w, i) => {
+      const chars = Array.from(w.ko);
+      const inner = chars.map(ch => /[,.:;…!?]/.test(ch) ? `<span class="pc">${ch}</span>` : `<span class="s" data-s="${k++}">${ch}</span>`).join('');
+      return `<button type="button" class="word${S.sel===i?' sel':''}" data-act="word" data-i="${i}" aria-label="${w.ko.replace(PUNCT,'')}, ${w.la.replace(PUNCT,'')} 자세히 보기">${inner}</button>`;
+    }).join('');
+    return `<div class="learn${S.solo?' solo':''}">
+      <div class="topbar">
+        <button type="button" class="iconbtn" data-act="back" aria-label="뒤로">${I.back}</button>
+        <div class="t"><h1>${p.ko}</h1><span class="sub"><span class="la">${p.la}</span> · ${p.where}</span></div>
+        <span class="n">${S.line+1} / ${n}</span>
+      </div>
+      ${voiceNote()}
+      <div class="stage">
+        ${prev ? `<div class="ghost"><span class="gk">${prev[1]}</span><span class="gm">${koOf(p, S.line-1)}</span></div>` : `<div class="ghost" aria-hidden="true"><span class="gm">시작</span></div>`}
+        <div class="cur">
+          ${p.who ? `<div class="who">${p.who}</div>` : ''}
+          <div class="la" lang="la">${L[0]}</div>
+          <div class="pron" id="pron">${pron}</div>
+          <div class="mean">${koOf(p, S.line)}</div>
+          <div class="hint">${I.tap}<span id="hint">${S.solo ? '소리 없이 칠해져요. 칠해지는 글자를 따라 직접 읽어 보세요.' : '단어를 누르면 뜻과 발음 팁을 볼 수 있어요.'}</span></div>
+        </div>
+        ${next ? `<div class="ghost"><span class="gk">${next[1]}</span><span class="gm">${koOf(p, S.line+1)}</span></div>` : `<div class="ghost"><span class="gm">마지막 구절이에요</span></div>`}
+      </div>
+      <div class="player">
+        <div class="segs" aria-hidden="true">${p.lines.map((_, i) => `<i class="${i<S.line?'past':i===S.line?'on':''}"></i>`).join('')}</div>
+        <div class="controls">
+          <button type="button" class="pill" data-act="rate" aria-label="재생 속도 바꾸기">${S.rate===0.7?'0.7배':S.rate===1?'1배':'0.85배'}</button>
+          <div class="mid">
+            <button type="button" class="iconbtn fill" data-act="line" data-d="-1" aria-label="이전 구절" ${S.line===0?'disabled':''}>${I.prev}</button>
+            <button type="button" class="play" id="playbtn" data-act="play" aria-label="재생">${I.play}</button>
+            <button type="button" class="iconbtn fill" data-act="line" data-d="1" aria-label="다음 구절" ${S.line===n-1?'disabled':''}>${I.next}</button>
+          </div>
+          <button type="button" class="pill" data-act="solo" aria-pressed="${S.solo}">내가 말하기</button>
+        </div>
+        <div class="row2">
+          <button type="button" class="pill" data-act="repeat" aria-pressed="${S.repeat}">${S.repeat?'이 구절 반복':'이어서 듣기'}</button>
+          <button type="button" class="linkbtn" data-act="practice" data-id="d2">미사 응답 연습하기 →</button>
+        </div>
+      </div>
+    </div>`;
+  },
+  practice(){
+    const d = DIALOGS[S.dlg];
+    return `<div class="learn">
+      <div class="topbar">
+        <button type="button" class="iconbtn" data-act="back" aria-label="뒤로">${I.back}</button>
+        <div class="t"><h1>응답 연습</h1><span class="sub">${d.ctx}</span></div>
+        <span class="n">${S.dlg+1} / ${DIALOGS.length}</span>
+      </div>
+      ${voiceNote()}
+      <div class="chat">
+        <div class="bub">
+          <div class="lab">${I.spk}<span>${d.pw}</span></div>
+          <div class="box"><span class="la" lang="la">${d.p[0]}</span><span class="k">${d.p[1]}</span><span class="m">${d.p[2]}</span></div>
+        </div>
+        <div class="bub me">
+          <div class="lab">내 차례 · 소리 내어 말해 보세요</div>
+          <div class="box">${S.cover
+            ? `<span class="m">외워서 말해 본 뒤 정답을 확인하세요</span><div class="bar" style="width:80%"></div><div class="bar" style="width:55%"></div>`
+            : `<span class="la" lang="la">${d.r[0]}</span><span class="k">${d.r[1]}</span><span class="m">${d.r[2]}</span>`}</div>
+        </div>
+        <div class="center"><button type="button" class="pill" data-act="cover" aria-pressed="${S.cover}">${S.cover?'정답 보기':'가리고 해 보기'}</button></div>
+      </div>
+      <div class="player">
+        <div class="btns">
+          <button type="button" class="btn sec" data-act="say" data-w="p">${d.pw} 다시 듣기</button>
+          <button type="button" class="btn sec" data-act="say" data-w="r">응답 듣기</button>
+        </div>
+        <div class="btns">
+          <button type="button" class="btn sec" data-act="dlg" data-d="-1" ${S.dlg===0?'disabled':''}>이전</button>
+          <button type="button" class="btn pri" data-act="dlg" data-d="1" style="flex:2">${S.dlg===DIALOGS.length-1?'연습 끝':'말해 봤어요, 다음'}</button>
+        </div>
+      </div>
+    </div>`;
+  },
+  live(){
+    const st = LIVE[S.live], nx = LIVE[S.live+1];
+    let body = '';
+    if (st.t === 'd'){
+      const d = D(st.id);
+      body = `<div class="lcard"><span class="lab">${d.pw}</span><span class="k">${d.p[1]}</span><span class="la" lang="la">${d.p[0]}</span></div>
+      <div class="resp"><div class="lab"><span>내 응답</span><button type="button" class="listen" data-act="livesay">듣기</button></div>
+        <span class="k">${d.r[1]}</span><span class="la" lang="la">${d.r[0]}</span><span class="m">${d.r[2]}</span></div>`;
+    } else if (st.t === 'p'){
+      const p = P(st.id);
+      body = `<div class="resp"><div class="lab"><span>모두 함께 · ${p.ko}</span><button type="button" class="listen" data-act="learnfromlive" data-id="${p.id}">배우기</button></div>
+        ${p.who ? `<span class="m">${p.who}</span>` : ''}
+        <div class="plines">${p.lines.map(l => `<div class="pl"><div class="k">${l[1]}</div><div class="la" lang="la">${l[0]}</div></div>`).join('')}</div></div>`;
+    } else {
+      body = `<div class="resp"><div class="lab"><span>모두 함께 · ${st.title}</span></div><span class="m" style="font-size:17px">${st.text}</span></div>`;
+    }
+    return `<div class="live sz${S.size}" id="live">
+      <div class="live-in">
+        <div class="bar1">
+          <button type="button" class="iconbtn" data-act="back" aria-label="미사 중 모드 닫기">${I.x}</button>
+          <div class="t"><span class="eyebrow">지금 · ${S.live+1} / ${LIVE.length}</span><h1>${st.sec} · ${titleOf(st)}</h1></div>
+          <div class="szs" role="group" aria-label="글자 크기">${[0,1,2].map(i => `<button type="button" class="szb" data-act="size" data-i="${i}" aria-pressed="${S.size===i}" aria-label="글자 ${['작게','보통','크게'][i]}" style="font-size:${12+i*4}px">가</button>`).join('')}</div>
+        </div>
+        <div class="status" id="wake">${I.sun}<span>소리는 꺼져 있어요 · 화면 꺼짐 방지를 켜는 중</span></div>
+        ${body}
+        <div class="next">${nx ? `<span style="font-size:12px">그다음</span><span class="k">${nx.sec} · ${titleOf(nx)}</span>` : `<span class="k">마침 예식이 끝났어요. 수고하셨어요.</span>`}</div>
+        <div class="lnav">
+          <button type="button" class="prev" data-act="livego" data-d="-1" ${S.live===0?'disabled':''}>이전</button>
+          <button type="button" class="nx" data-act="livego" data-d="1" ${S.live===LIVE.length-1?'disabled':''}>다음</button>
+        </div>
+        <div class="note">화면을 옆으로 밀어도 넘어가요</div>
+      </div>
+    </div>`;
+  }
+};
+function titleOf(it){
+  if (it.t === 'd') return it.ctx || D(it.id).ctx;
+  if (it.t === 'p') return P(it.id).ko;
+  return it.title;
+}
+function tagHTML(it){
+  if (it.t === 'l') return `<span class="tag listen">${it.title}</span>`;
+  if (it.t === 'i') return `<span class="tag listen">${it.title} · 함께 노래</span>`;
+  if (it.t === 'p'){ const p = P(it.id); return `<button type="button" class="tag say" data-act="open" data-id="${p.id}" data-from="mass">${p.ko} <span class="la">${p.la}</span></button>`; }
+  const d = D(it.id);
+  return `<button type="button" class="tag say" data-act="practice" data-id="${d.id}">${it.ctx || d.ctx}</button>`;
+}
+function renderList(){
+  const q = S.q.trim().toLowerCase().replace(/\s/g,'');
+  const norm = t => t.toLowerCase().replace(/\s/g,'');
+  const items = PRAYERS.filter(p => {
+    if (S.cat !== 'all' && p.cat !== S.cat) return false;
+    if (!q) return true;
+    const hay = norm([p.ko, p.la, p.pron||''].concat((p.lines||[]).flat()).join(' '));
+    return hay.includes(q);
+  });
+  $('#count').textContent = items.length ? `${items.length}개 기도문` : '';
+  $('#plist').innerHTML = items.length ? items.map(p => {
+    const pron = p.soon ? p.pron : p.lines[0][1].split(' ').slice(0,3).join(' ') + '…';
+    const badge = p.soon ? '<span class="badge">준비 중</span>' : '';
+    const inner = `<span class="txt"><span class="top"><span class="ko">${p.ko}</span><span class="la">${p.la}</span></span><span class="pron">${pron}</span><span class="where">${p.where}</span></span>${badge}${p.soon?'':I.chev}`;
+    return p.soon ? `<div class="item" aria-disabled="true">${inner}</div>` : `<button type="button" class="item" data-act="open" data-id="${p.id}" data-from="home">${inner}</button>`;
+  }).join('') : `<div class="empty"><b>찾는 기도문이 없어요</b><span>다른 이름으로 찾아보거나, 미사 모드에서 순서대로 볼 수 있어요.</span><button type="button" class="linkbtn" data-act="tab" data-to="mass">미사 모드에서 보기</button></div>`;
+}
+
+/* ---------- karaoke ---------- */
+function paint(){
+  const pos = K ? Math.floor(K.pos) : 0;
+  const playing = !!(K && K.playing);
+  document.querySelectorAll('#pron .s').forEach(el => {
+    const i = +el.dataset.s;
+    el.classList.toggle('done', i < pos);
+    el.classList.toggle('now', playing && i === pos - 1);
+  });
+  const b = $('#playbtn');
+  if (b){ b.innerHTML = playing ? I.pause : I.play; b.setAttribute('aria-label', playing ? '일시정지' : '재생'); }
+}
+function startLine(){
+  if (K){ K.alive = false; clearInterval(K.timer); }
+  stopSpeech();
+  const p = P(S.pid), L = p.lines[S.line];
+  const ws = wordsOf(L[0], L[1]);
+  const starts = []; let acc = 0;
+  ws.forEach(w => { starts.push(acc); acc += syls(w.ko).length; });
+  const k = K = { alive:true, playing:true, pos:0, total:acc, starts, cur:0, useB:false, timer:null };
+  const silent = S.solo || !canSpeak();
+  const sylMs = (silent ? 380 : 250) / (S.rate / 0.85);
+  let last = performance.now();
+  k.timer = setInterval(() => {
+    if (!k.alive) return;
+    const now = performance.now(), dt = now - last; last = now;
+    let limit = k.total - (silent ? 0 : 0.6);
+    if (k.useB) limit = k.starts[k.cur+1] !== undefined ? k.starts[k.cur+1] : k.total;
+    k.pos = Math.min(k.pos + dt / sylMs, limit);
+    paint();
+    if (silent && k.pos >= k.total) lineDone(k);
+  }, 50);
+  if (!silent){
+    speak(L[0], S.rate, {
+      boundary(ci, text){
+        if (!k.alive) return;
+        const idx = text.slice(0, ci).trim().split(/\s+/).filter(Boolean).length;
+        k.useB = true; k.cur = Math.min(idx, k.starts.length-1);
+        k.pos = Math.max(k.pos, k.starts[k.cur]);
+      },
+      end(){ if (k.alive) lineDone(k); }
+    });
+  }
+  paint();
+}
+function lineDone(k){
+  if (!k.alive) return;
+  k.pos = k.total; k.playing = false; clearInterval(k.timer); paint();
+  const p = P(S.pid), last = S.line === p.lines.length - 1;
+  setTimeout(() => {
+    if (!k.alive || K !== k) return;
+    if (S.repeat){ startLine(); return; }
+    if (!last){ S.line++; S.sel = -1; view.innerHTML = VIEWS.learn(); startLine(); }
+  }, 700);
+}
+function pause(){
+  if (!K) return;
+  K.alive = false; clearInterval(K.timer); stopSpeech();
+  const keep = Math.floor(K.pos);
+  K = { alive:false, playing:false, pos:keep };
+  paint();
+}
+
+/* ---------- word sheet ---------- */
+function openSheet(i){
+  pause();
+  const p = P(S.pid), L = p.lines[S.line], w = wordsOf(L[0], L[1])[i];
+  S.sel = i;
+  document.querySelectorAll('#pron .word').forEach((b, j) => b.classList.toggle('sel', j === i));
+  $('#sheet').innerHTML = `<div class="scrim" data-act="closesheet">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="단어 자세히" data-stop="1">
+      <div class="grab" aria-hidden="true"></div>
+      <div class="head"><div class="t">
+        <span class="wla la" lang="la">${w.la.replace(PUNCT,'')}</span>
+        <span class="wko">${w.ko.replace(PUNCT,'')}</span>
+        <span class="wm">${w.mean || '뜻 준비 중'}</span>
+      </div><button type="button" class="iconbtn fill" data-act="closesheet" aria-label="닫기">${I.x}</button></div>
+      <div class="tip">${w.note}</div>
+      <div class="btns">
+        <button type="button" class="btn sec" data-act="sayword" data-r="0.55" data-w="${w.la.replace(PUNCT,'')}">천천히 듣기</button>
+        <button type="button" class="btn pri" data-act="sayword" data-r="0.85" data-w="${w.la.replace(PUNCT,'')}">단어 듣기</button>
+      </div>
+    </div></div>`;
+  const first = $('#sheet .btn.pri'); first && first.focus();
+}
+function closeSheet(){
+  if (!$('#sheet').innerHTML) return;
+  $('#sheet').innerHTML = '';
+  S.sel = -1;
+  document.querySelectorAll('#pron .word').forEach(b => b.classList.remove('sel'));
+}
+
+/* ---------- wake lock ---------- */
+async function wakeOn(){
+  const el = () => $('#wake span');
+  try{
+    if (!('wakeLock' in navigator)) throw 0;
+    wake = await navigator.wakeLock.request('screen');
+    if (el()) el().textContent = '소리는 꺼져 있어요 · 화면 꺼짐 방지 켜짐';
+  }catch(e){ if (el()) el().textContent = '소리는 꺼져 있어요 · 이 기기에서는 화면 꺼짐 방지를 쓸 수 없어요'; }
+}
+function wakeOff(){ if (wake){ try{ wake.release(); }catch(e){} wake = null; } }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.route === 'live') wakeOn(); });
+
+/* ---------- actions ---------- */
+const ACT = {
+  tab: el => go(el.dataset.to),
+  cat: el => { S.cat = el.dataset.id; document.querySelectorAll('[data-act="cat"]').forEach(b => b.setAttribute('aria-pressed', b === el)); renderList(); },
+  open: el => go('prayer', { pid:el.dataset.id, pline:0, pfrom:el.dataset.from || 'home' }),
+  playall: () => { if (PA) { stopPA(); stopSpeech(); } else playFrom(0); },
+  playfrom: el => playFrom(+el.dataset.i),
+  learnit: () => go('learn', { line:0, sel:-1, from:'prayer' }),
+  learnfromlive: el => go('learn', { pid:el.dataset.id, line:0, sel:-1, from:'live' }),
+  back: () => {
+    const f = S.from;
+    if (S.route === 'practice' && S.practiceFrom) { go(S.practiceFrom); return; }
+    if (S.route === 'prayer') { go(S.pfrom === 'mass' ? 'mass' : 'home'); return; }
+    go(f === 'live' ? 'live' : f === 'prayer' ? 'prayer' : f === 'mass' ? 'mass' : 'home');
+  },
+  play: () => { if (K && K.playing) pause(); else { if (K && K.pos >= (K.total||1)) K = null; startLine(); } },
+  line: el => { const p = P(S.pid); const n = Math.max(0, Math.min(p.lines.length-1, S.line + +el.dataset.d)); stopAll(); S.line = n; S.sel = -1; view.innerHTML = VIEWS.learn(); paint(); },
+  rate: () => { S.rate = S.rate === 0.85 ? 0.7 : S.rate === 0.7 ? 1 : 0.85; const was = K && K.playing; stopAll(); view.innerHTML = VIEWS.learn(); paint(); if (was) startLine(); },
+  solo: () => { S.solo = !S.solo; const was = K && K.playing; stopAll(); view.innerHTML = VIEWS.learn(); paint(); if (was) startLine(); },
+  repeat: el => { S.repeat = !S.repeat; el.setAttribute('aria-pressed', S.repeat); el.textContent = S.repeat ? '이 구절 반복' : '이어서 듣기'; },
+  word: el => openSheet(+el.dataset.i),
+  closesheet: (el, e) => { if (e.target.closest('[data-stop]') && el.classList.contains('scrim')) return; closeSheet(); },
+  sayword: el => speak(el.dataset.w, +el.dataset.r),
+  practice: el => {
+    const from = S.route === 'learn' ? 'learn' : S.route;
+    const keep = { pid:S.pid, line:S.line };
+    go('practice', Object.assign({ dlg: Math.max(0, DIALOGS.findIndex(d => d.id === el.dataset.id)), cover:false, practiceFrom: from }, keep));
+    speak(DIALOGS[S.dlg].p[0], S.rate);
+  },
+  cover: () => { S.cover = !S.cover; view.innerHTML = VIEWS.practice(); },
+  say: el => { const d = DIALOGS[S.dlg]; speak(el.dataset.w === 'p' ? d.p[0] : d.r[0], S.rate); },
+  dlg: el => {
+    const n = S.dlg + +el.dataset.d;
+    if (n >= DIALOGS.length){ toast('응답 14개를 모두 연습했어요'); ACT.back(); return; }
+    stopSpeech(); S.dlg = Math.max(0, n); view.innerHTML = VIEWS.practice(); speak(DIALOGS[S.dlg].p[0], S.rate);
+  },
+  live: el => go('live', { live:+el.dataset.i || 0, from:S.route }),
+  livego: el => liveStep(+el.dataset.d),
+  livesay: () => { const st = LIVE[S.live]; if (st.t === 'd') speak(D(st.id).r[0], S.rate); },
+  size: el => { S.size = +el.dataset.i; store.set('wyd-size', S.size); const box = $('#live'); box.className = 'live sz' + S.size; document.querySelectorAll('.szb').forEach(b => b.setAttribute('aria-pressed', b === el)); }
+};
+function liveStep(d){
+  const n = S.live + d;
+  if (n < 0 || n >= LIVE.length) return;
+  stopSpeech(); S.live = n;
+  view.innerHTML = VIEWS.live();
+  const box = $('#live'); if (box) box.scrollTop = 0;
+  wakeOn();
+}
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el || el.disabled) return;
+  if (el.classList.contains('scrim') && e.target !== el) return;
+  ACT[el.dataset.act] && ACT[el.dataset.act](el, e);
+});
+document.addEventListener('input', e => { if (e.target.id === 'q'){ S.q = e.target.value; renderList(); } });
+document.addEventListener('change', e => {
+  if (e.target.id !== 'voice-sel') return;
+  TTS.uri = e.target.value;
+  try{ localStorage.setItem('wyd-voice', TTS.uri); }catch(err){}
+  const n = $('#voice-note'); if (n) n.outerHTML = voiceNote();
+  speak('Pater noster', 0.85);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ if ($('#sheet').innerHTML) closeSheet(); else if (S.route === 'live') ACT.back(); }
+  if (S.route === 'live' && !e.target.closest('input')){
+    if (e.key === 'ArrowRight') liveStep(1);
+    if (e.key === 'ArrowLeft') liveStep(-1);
+  }
+});
+let tx = null, ty = null;
+document.addEventListener('touchstart', e => { if (S.route !== 'live') return; tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
+document.addEventListener('touchend', e => {
+  if (S.route !== 'live' || tx === null) return;
+  const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) liveStep(dx < 0 ? 1 : -1);
+  tx = ty = null;
+}, {passive:true});
+
+render();
+</script>
